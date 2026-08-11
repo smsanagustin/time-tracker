@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "time-tracker",
+  "name": "TimeTracker",
+  "version": "0.1.0",
+  "author": "sophia",
+  "license": "MIT",
+  "description": "Per-task time tracking with a running total in the bar",
+  "kinds": ["bar-widget"],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "TimeTracker",
+    "description": "Track time per task; the bar shows the combined total",
+    "category": "Productivity",
+    "allowMultiple": false,
+    "defaultSection": "center",
+    "schema": [
+      {
+        "key": "dataPath",
+        "type": "string",
+        "label": "Task data file",
+        "defaultValue": "~/.config/omarchy/time-tracker.json"
+      }
+    ]
+  }
+}
