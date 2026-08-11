@@ -22,7 +22,15 @@ omarchy bar put time-tracker --section center
 or by adding an entry to `bar.layout` in `~/.config/omarchy/shell.json`:
 
 ```json
+
 { "id": "time-tracker" }
+```
+
+
+If you want to place it on the right, use this command:
+
+```bash
+omarchy bar move time-tracker --section right
 ```
 
 Saving anything under `~/.config/omarchy/plugins/` reloads plugin code
