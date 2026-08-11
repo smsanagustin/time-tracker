@@ -49,7 +49,10 @@ automatically; `shell.json` hot-reloads too.
   commits, `Esc` or the `✕` button cancels, `Tab` jumps from title to time.
   The time field accepts `HH:MM:SS`, `MM:SS`, a bare number of seconds, or a
   suffixed form like `1h30m`. Unparseable input leaves the stored time alone.
-- **`+` button** — appends a new task titled "Empty", ready to be edited.
+- **Footer buttons** — the `+` appends a new task titled "Empty", ready to be
+  edited. The reset button to its left zeroes *every* task at once; like the
+  per-row reset, any running timer keeps running from `00:00:00`. It takes
+  effect immediately, with no confirmation prompt.
 - Running timers render in the full foreground color; idle ones are dimmed, so
   the active tasks stand out.
 
@@ -89,6 +92,7 @@ The file is only read at load time, so hand-edits need a reload —
 ```bash
 omarchy-shell time-tracker open     # or close / show / hide / toggle
 omarchy-shell time-tracker add      # append a new "Empty" task
+omarchy-shell time-tracker resetAll # zero every task's timer
 omarchy-shell time-tracker total    # print the combined total
 ```
 

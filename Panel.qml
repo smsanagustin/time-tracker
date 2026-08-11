@@ -178,6 +178,25 @@ Panel {
     })
   }
 
+  // "Reset all", the footer action: zero every task's clock. Same rule as the
+  // per-row reset — a running timer keeps running, just from 00:00:00.
+  function resetAllTimers() {
+    if (root.tasks.length === 0) return
+    root.nowMs = Date.now()
+    var next = []
+    for (var i = 0; i < root.tasks.length; i++) {
+      var task = root.tasks[i]
+      next.push({
+        id: task.id,
+        title: task.title,
+        seconds: 0,
+        running: task.running,
+        startedAt: task.running ? root.nowMs : 0
+      })
+    }
+    root.setTasks(next)
+  }
+
   function toggleTimerAt(index) {
     if (index < 0 || index >= root.tasks.length) return
     root.toggleTimer(root.tasks[index].id)
@@ -309,6 +328,7 @@ Panel {
     function hide(): void { root.close() }
     function toggle(): void { root.toggle() }
     function add(): void { root.addTask() }
+    function resetAll(): void { root.resetAllTimers() }
     function total(): string { return root.totalText }
   }
 
@@ -426,15 +446,30 @@ Panel {
             font.pixelSize: Style.font.body
           }
 
-          PanelActionButton {
+          Row {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            iconText: "󰐕"
-            tooltipText: "Add task"
-            foreground: root.contentForeground
-            fontFamily: root.contentFontFamily
-            bordered: true
-            onClicked: root.addTask()
+            spacing: Style.space(10)
+
+            PanelActionButton {
+              iconText: "󰜉"
+              tooltipText: "Reset every timer to 00:00:00"
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+              hoverColor: root.bar ? root.bar.urgent : Color.urgent
+              bordered: true
+              enabled: root.tasks.length > 0
+              onClicked: root.resetAllTimers()
+            }
+
+            PanelActionButton {
+              iconText: "󰐕"
+              tooltipText: "Add task"
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+              bordered: true
+              onClicked: root.addTask()
+            }
           }
         }
       }
