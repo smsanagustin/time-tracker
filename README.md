@@ -84,8 +84,17 @@ Tasks persist to `~/.config/omarchy/time-tracker.json` (override with the
 the epoch-ms stamp of when it started alongside its banked seconds, so timers
 keep counting correctly across a shell restart.
 
-The file is only read at load time, so hand-edits need a reload —
-`omarchy restart shell` or `omarchy-shell shell rescanPlugins`.
+The file is watched, so hand-edits (and edits from other shell instances) are
+picked up immediately without a reload.
+
+## Multiple monitors
+
+The bar widget is instantiated once per monitor, and each instance keeps its own
+copy of the task list. They stay in sync through the data file: every mutation is
+written out, and the other instances reload on the change — so starting a timer
+on one monitor starts it on all of them. Only the shared task state syncs; the
+popup, keyboard cursor, and in-progress edit stay local to the monitor you're
+using.
 
 ## IPC
 

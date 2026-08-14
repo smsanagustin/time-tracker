@@ -22,6 +22,12 @@ Panel {
   property var tasks: []
   property bool loaded: false
 
+  // Canonical serialization of the state this instance last read or wrote. The
+  // bar widget is instantiated once per monitor, and every instance watches the
+  // same file, so this is how an instance tells "someone else changed the
+  // tasks" from "that's just my own write echoing back".
+  property string syncedText: ""
+
   // Wall clock for the running-task readouts. Ticked once a second, only
   // while something needs it.
   property real nowMs: Date.now()
@@ -74,17 +80,26 @@ Panel {
   // ------------------------------------------------------------ persistence
 
   function loadTasks(raw) {
-    root.tasks = TaskModel.parseState(raw)
+    var next = TaskModel.parseState(raw)
+    var text = TaskModel.serialize(next)
+    // Our own write coming back through the file watcher — nothing to apply,
+    // and re-assigning `tasks` here would needlessly rebuild every row.
+    if (root.loaded && text === root.syncedText) return
+    root.syncedText = text
+    root.tasks = next
     root.loaded = true
     root.clampCursor()
     root.nowMs = Date.now()
+    // The task being edited here may have been deleted on another monitor.
+    if (root.editingId !== "" && TaskModel.indexOfId(root.tasks, root.editingId) < 0) root.cancelEdit()
   }
 
   function persist() {
     // Guard against writing an empty list over a real file if a mutation
     // somehow lands before the first load resolves.
     if (!root.loaded) return
-    dataFile.setText(TaskModel.serialize(root.tasks))
+    root.syncedText = TaskModel.serialize(root.tasks)
+    dataFile.setText(root.syncedText)
   }
 
   function setTasks(next) {
@@ -302,10 +317,12 @@ Panel {
     id: dataFile
     path: root.dataFilePath
     atomicWrites: true
-    // Our own writes are the only expected source of change; watching would
-    // just bounce every save back through the parser.
-    watchChanges: false
+    // Watched so the per-monitor instances stay in sync: a mutation on one
+    // monitor lands in this file, and every other instance picks it up here.
+    // `text()` is stale inside the change signal, so route through reload.
+    watchChanges: true
     printErrors: false
+    onFileChanged: dataFile.reload()
     onLoaded: root.loadTasks(text())
     // First run: the file doesn't exist yet. Without this the panel would
     // never reach `loaded` and could never create it.
