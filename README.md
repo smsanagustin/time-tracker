@@ -75,7 +75,8 @@ The popup is fully keyboard-navigable.
 | `d` / `x` | Delete the cursor task |
 | `a` / `n` | Add a new task |
 | `Tab` | Move to the next bar panel |
-| `Esc` | Close the popup |
+| `?` | Toggle the keybind cheat sheet |
+| `Esc` | Close the cheat sheet if open, otherwise the popup |
 
 ## Data
 

@@ -48,6 +48,21 @@ Panel {
   property int actionIndex: -1
   readonly property int actionCount: 4
 
+  // The `?` cheat sheet, drawn under the footer while open.
+  property bool helpVisible: false
+  readonly property var keyHelp: [
+    { keys: "j / k", label: "Move between tasks" },
+    { keys: "l", label: "Show the row's actions" },
+    { keys: "j / k", label: "Step into the actions, and back out" },
+    { keys: "h / l", label: "Move across them (h closes from the first)" },
+    { keys: "Enter", label: "Run the focused action, else start/stop" },
+    { keys: "e / r", label: "Edit / reset the task" },
+    { keys: "d", label: "Delete the task" },
+    { keys: "a", label: "Add a task" },
+    { keys: "Tab", label: "Next bar panel" },
+    { keys: "? / Esc", label: "Toggle this list / close" }
+  ]
+
   // Leaving the row, collapsing it, or opening the editor all take the
   // action strip off screen, so the cursor has to come back to the row.
   onExpandedIdChanged: root.actionIndex = -1
@@ -82,7 +97,15 @@ Panel {
   function close() {
     root.cancelEdit()
     root.actionIndex = -1
+    root.helpVisible = false
     root.controller.hide()
+  }
+
+  // Escape peels off one layer at a time: the cheat sheet first, the panel
+  // only once it is out of the way.
+  function handleClose() {
+    if (root.helpVisible) root.helpVisible = false
+    else root.close()
   }
 
   function toggle() {
@@ -352,6 +375,7 @@ Panel {
   // Row shortcuts, mirroring the action strip's buttons one key each.
   function handleTextKey(text) {
     var key = String(text || "").toLowerCase()
+    if (key === "?") return root.helpVisible = !root.helpVisible
     if (key === "a" || key === "n") return root.addTask()
 
     var id = root.cursorTaskId()
@@ -441,7 +465,7 @@ Panel {
       onMoveRequested: function(dx, dy) { root.moveCursor(dx, dy) }
       onActivateRequested: root.activateCursor()
       onDeleteRequested: root.deleteCursorTask()
-      onCloseRequested: root.close()
+      onCloseRequested: root.handleClose()
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) { root.handleTextKey(t) }
 
@@ -532,6 +556,16 @@ Panel {
             }
 
             PanelActionButton {
+              iconText: "󰋗"
+              tooltipText: root.helpVisible ? "Hide keybinds" : "Show keybinds (?)"
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+              bordered: true
+              hasCursor: root.helpVisible
+              onClicked: root.helpVisible = !root.helpVisible
+            }
+
+            PanelActionButton {
               iconText: "󰐕"
               tooltipText: "Add task"
               foreground: root.contentForeground
@@ -539,6 +573,66 @@ Panel {
               bordered: true
               onClicked: root.addTask()
             }
+          }
+        }
+
+        // ------------------------------------------------------ cheat sheet
+        // Sits at the bottom of the same card, so the panel simply grows
+        // downward to reveal it. `visible: false` keeps it out of the Column's
+        // implicitHeight, which is what the popup sizes itself from.
+        Column {
+          id: helpCard
+          visible: root.helpVisible
+          width: parent.width
+          spacing: Style.space(4)
+
+          PanelSeparator {
+            foreground: root.contentForeground
+          }
+
+          PanelSectionHeader {
+            text: "KEYBINDS"
+            foreground: root.contentForeground
+            fontFamily: root.contentFontFamily
+          }
+
+          Repeater {
+            model: root.keyHelp
+
+            delegate: Item {
+              required property var modelData
+              width: helpCard.width
+              height: Style.space(19)
+
+              Text {
+                id: helpKeys
+                anchors.left: parent.left
+                anchors.leftMargin: Style.space(4)
+                anchors.verticalCenter: parent.verticalCenter
+                width: Style.space(64)
+                text: parent.modelData.keys
+                color: root.contentForeground
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.bodySmall
+              }
+
+              Text {
+                anchors.left: helpKeys.right
+                anchors.leftMargin: Style.space(8)
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                text: parent.modelData.label
+                color: root.mutedForeground
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.bodySmall
+                elide: Text.ElideRight
+              }
+            }
+          }
+
+          Item {
+            width: parent.width
+            height: Style.space(2)
           }
         }
       }
