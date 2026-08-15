@@ -42,6 +42,17 @@ Panel {
   property string expandedId: ""
   property string editingId: ""
 
+  // Where the cursor sits inside the expanded row's action strip: -1 means
+  // it is still on the row itself, 0..actionCount-1 means one of the buttons
+  // has focus. Order matches the strip: start/pause, reset, edit, delete.
+  property int actionIndex: -1
+  readonly property int actionCount: 4
+
+  // Leaving the row, collapsing it, or opening the editor all take the
+  // action strip off screen, so the cursor has to come back to the row.
+  onExpandedIdChanged: root.actionIndex = -1
+  onCursorIndexChanged: root.actionIndex = -1
+
   readonly property color contentForeground: bar ? bar.foreground : Color.foreground
   readonly property color mutedForeground: Qt.darker(contentForeground, 1.75)
   readonly property string contentFontFamily: bar ? bar.fontFamily : Style.font.family
@@ -70,6 +81,7 @@ Panel {
 
   function close() {
     root.cancelEdit()
+    root.actionIndex = -1
     root.controller.hide()
   }
 
@@ -233,11 +245,6 @@ Panel {
     }
   }
 
-  function startEditAt(index) {
-    if (index < 0 || index >= root.tasks.length) return
-    root.startEdit(root.tasks[index].id)
-  }
-
   function cancelEdit() {
     if (root.editingId === "") return
     root.editingId = ""
@@ -283,32 +290,80 @@ Panel {
     root.cursorIndex = Math.max(0, Math.min(root.cursorIndex, root.tasks.length - 1))
   }
 
+  readonly property bool onAction: root.actionIndex >= 0
+
   function moveCursor(dx, dy) {
     if (root.tasks.length === 0) return
+
     if (dy !== 0) {
+      // The action strip is drawn under its row, so vertical movement walks
+      // into it and back out again rather than skipping to the next task.
+      if (root.onAction) {
+        if (dy < 0) root.actionIndex = -1
+        return
+      }
       if (!root.cursorActive) {
         root.cursorActive = true
         if (dy > 0) return
       }
+      if (dy > 0 && root.expandedId === root.tasks[root.cursorIndex].id) {
+        root.actionIndex = 0
+        return
+      }
       root.cursorIndex = Math.max(0, Math.min(root.cursorIndex + dy, root.tasks.length - 1))
     }
+
     if (dx !== 0) {
       root.cursorActive = true
+      if (root.onAction) {
+        // h/l walk the strip; h off its first button is the only way left,
+        // so that keeps its old meaning of collapsing the row.
+        if (dx < 0 && root.actionIndex === 0) root.expandedId = ""
+        else root.actionIndex = Math.max(0, Math.min(root.actionIndex + dx, root.actionCount - 1))
+        return
+      }
       var id = root.tasks[root.cursorIndex].id
       root.expandedId = dx > 0 ? id : (root.expandedId === id ? "" : root.expandedId)
     }
   }
 
+  // Enter/Space: the focused action button when the cursor is in the strip,
+  // otherwise the row's start/stop shortcut.
+  function activateCursor() {
+    root.cursorActive = true
+    if (root.tasks.length === 0) return
+    if (!root.onAction) return root.toggleTimerAt(root.cursorIndex)
+
+    var id = root.tasks[root.cursorIndex].id
+    if (root.actionIndex === 0) root.toggleTimer(id)
+    else if (root.actionIndex === 1) root.resetTimer(id)
+    else if (root.actionIndex === 2) root.startEdit(id)
+    else if (root.actionIndex === 3) root.removeTask(id)
+  }
+
+  // The task the row shortcuts act on, or "" when nothing is highlighted.
+  // Requiring `cursorActive` is what keeps a freshly opened panel — which
+  // shows no highlight yet — from letting `d` delete the top task blind.
+  function cursorTaskId() {
+    if (!root.cursorActive || root.tasks.length === 0) return ""
+    return root.tasks[root.cursorIndex].id
+  }
+
+  // Row shortcuts, mirroring the action strip's buttons one key each.
   function handleTextKey(text) {
     var key = String(text || "").toLowerCase()
-    if (key === "a" || key === "n") root.addTask()
-    else if (key === "e") root.startEditAt(root.cursorIndex)
-    else if (key === "r" && root.tasks.length > 0) root.resetTimer(root.tasks[root.cursorIndex].id)
+    if (key === "a" || key === "n") return root.addTask()
+
+    var id = root.cursorTaskId()
+    if (id === "") return
+    if (key === "e") root.startEdit(id)
+    else if (key === "r") root.resetTimer(id)
+    else if (key === "d") root.removeTask(id)
   }
 
   function deleteCursorTask() {
-    if (root.tasks.length === 0) return
-    root.removeTask(root.tasks[root.cursorIndex].id)
+    var id = root.cursorTaskId()
+    if (id !== "") root.removeTask(id)
   }
 
   // --------------------------------------------------------------- plumbing
@@ -384,10 +439,7 @@ Panel {
       blocked: root.editingId !== ""
 
       onMoveRequested: function(dx, dy) { root.moveCursor(dx, dy) }
-      onActivateRequested: {
-        root.cursorActive = true
-        root.toggleTimerAt(root.cursorIndex)
-      }
+      onActivateRequested: root.activateCursor()
       onDeleteRequested: root.deleteCursorTask()
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
@@ -509,7 +561,14 @@ Panel {
     // tint so the active timers are obvious at a glance.
     readonly property color rowForeground: isRunning ? root.contentForeground : root.mutedForeground
 
-    hasCursor: root.cursorActive && root.cursorIndex === index && !isEditing
+    readonly property bool isCurrent: root.cursorActive && root.cursorIndex === index && !isEditing
+    // Only one hover-cursor highlight is allowed on screen at a time, so
+    // once the cursor steps into the action strip the row drops back to the
+    // quieter "selected" paint and the focused button takes the cursor.
+    readonly property bool actionsFocused: isCurrent && isExpanded && root.onAction
+
+    hasCursor: isCurrent && !actionsFocused
+    current: actionsFocused
     foreground: root.contentForeground
     implicitHeight: rowColumn.implicitHeight + Style.space(6)
 
@@ -706,6 +765,7 @@ Panel {
             foreground: root.contentForeground
             fontFamily: root.contentFontFamily
             bordered: true
+            hasCursor: row.actionsFocused && root.actionIndex === 0
             onClicked: root.toggleTimer(row.task.id)
           }
 
@@ -715,6 +775,7 @@ Panel {
             foreground: root.contentForeground
             fontFamily: root.contentFontFamily
             bordered: true
+            hasCursor: row.actionsFocused && root.actionIndex === 1
             onClicked: root.resetTimer(row.task.id)
           }
 
@@ -724,6 +785,7 @@ Panel {
             foreground: root.contentForeground
             fontFamily: root.contentFontFamily
             bordered: true
+            hasCursor: row.actionsFocused && root.actionIndex === 2
             onClicked: root.startEdit(row.task.id)
           }
 
@@ -734,6 +796,7 @@ Panel {
             fontFamily: root.contentFontFamily
             hoverColor: root.bar ? root.bar.urgent : Color.urgent
             bordered: true
+            hasCursor: row.actionsFocused && root.actionIndex === 3
             onClicked: root.removeTask(row.task.id)
           }
         }

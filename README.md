@@ -65,15 +65,15 @@ The popup is fully keyboard-navigable.
 
 | Key | Action |
 | --- | --- |
-| `j` / `↓` | Move the cursor down |
-| `k` / `↑` | Move the cursor up |
-| `l` / `→` | Expand the cursor row's actions |
-| `h` / `←` | Collapse the cursor row |
-| `Enter` / `Space` | Start/stop the cursor task's timer |
+| `j` / `↓` | Move the cursor down — or into an expanded row's actions |
+| `k` / `↑` | Move the cursor up — or back out of the actions onto the row |
+| `l` / `→` | Expand the cursor row's actions, then walk them rightwards |
+| `h` / `←` | Walk the actions leftwards; from the first one, collapse the row |
+| `Enter` / `Space` | Run the focused action, or start/stop the cursor task's timer |
 | `e` | Edit the cursor task |
 | `r` | Reset the cursor task to `00:00:00` |
+| `d` / `x` | Delete the cursor task |
 | `a` / `n` | Add a new task |
-| `x` | Delete the cursor task |
 | `Tab` | Move to the next bar panel |
 | `Esc` | Close the popup |
 
