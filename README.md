@@ -1,6 +1,6 @@
 # TimeTracker
 
-An Omarchy shell bar widget for tracking time against a list of tasks. The bar
+An Omarchy shell bar widget for tracking time against a list of tasks based on this Gnome [extension](https://github.com/aliakseiz/tracker). The bar
 shows the combined total of every task; clicking it opens the task list.
 
 **Note:** This plugin is vibe-coded with Claude Opus 5. Use with caution.
