@@ -3,6 +3,12 @@
 An Omarchy shell bar widget for tracking time against a list of tasks. The bar
 shows the combined total of every task; clicking it opens the task list.
 
+**Note:** This plugin is vibe-coded with Claude Opus 5. Use with caution.
+
+## Screenshot
+<img width="454" height="185" alt="image" src="https://github.com/user-attachments/assets/514e26c1-3306-4634-988f-fbe2fd542d88" />
+
+
 ## Install
 
 The plugin lives in the user plugin directory, so a copy of this folder is all
