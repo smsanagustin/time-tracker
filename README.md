@@ -29,7 +29,7 @@ omarchy plugin remove sophie.time-tracker
 ## How to use
 
 - **Bar button** — Shows the total time of all tasks. Color changes to red when at least one timer is running.
- **Task timer** - For each task you can: start/stop timer, edit task, reset timer or delete the task.
+- **Task timer** - For each task you can: start/stop timer, edit task, reset timer or delete the task.
 
 Multiple timers can run at once — nothing stops the previous one when you
 start another.
