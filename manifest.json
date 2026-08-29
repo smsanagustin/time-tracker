@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "time-tracker",
+  "id": "sophie.time-tracker",
   "name": "TimeTracker",
   "version": "0.1.0",
-  "author": "sophia",
+  "author": "sophie",
   "license": "MIT",
   "description": "Per-task time tracking with a running total in the bar",
   "kinds": ["bar-widget"],
