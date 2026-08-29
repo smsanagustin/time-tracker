@@ -20,7 +20,13 @@ omarchy plugin add https://github.com/smsanagustin/time-tracker --enable
 Saving anything under `~/.config/omarchy/plugins/` reloads plugin code
 automatically; `shell.json` hot-reloads too.
 
-## Using it
+## Uninstall or remove the plugin
+To remove the plugin from your shell, run:
+```
+omarchy plugin remove sophie.time-tracker
+```
+
+## How to use
 
 - **Bar button** — Shows the total time of all tasks. Color changes to red when at least one timer is running.
  **Task timer** - For each task you can: start/stop timer, edit task, reset timer or delete the task.
