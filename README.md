@@ -11,56 +11,19 @@ shows the combined total of every task; clicking it opens the task list.
 
 ## Install
 
-The plugin lives in the user plugin directory, so a copy of this folder is all
-that's needed:
-
-```bash
-mkdir -p ~/.config/omarchy/plugins/time-tracker
-# copy Panel.qml, TaskModel.js, and manifest.json into that directory
+The plugin lives in the user plugin directory, to install:
+```
+omarchy plugin add https://github.com/smsanagustin/time-tracker --enable
 ```
 
-Then add it to the bar — either with the command:
-
-```bash
-omarchy bar put time-tracker --section center
-```
-
-or by adding an entry to `bar.layout` in `~/.config/omarchy/shell.json`:
-
-```json
-
-{ "id": "time-tracker" }
-```
-
-
-If you want to place it on the right, use this command:
-
-```bash
-omarchy bar move time-tracker --section right
-```
 
 Saving anything under `~/.config/omarchy/plugins/` reloads plugin code
 automatically; `shell.json` hot-reloads too.
 
 ## Using it
 
-- **Bar button** — the running total of every task. It switches to the bar's
-  active color while at least one timer is going.
-- **Task row** — status dot, title, elapsed time, and a `>` chevron.
-  - Click the **task name** to start/stop that task's timer.
-  - Click the **chevron** to reveal that row's actions.
-- **Row actions** — play/pause (start or stop the timer), reset (set this
-  task back to `00:00:00`, leaving a running timer running), edit, delete.
-- **Edit mode** — the title and the time both become input fields. `Enter`
-  commits, `Esc` or the `✕` button cancels, `Tab` jumps from title to time.
-  The time field accepts `HH:MM:SS`, `MM:SS`, a bare number of seconds, or a
-  suffixed form like `1h30m`. Unparseable input leaves the stored time alone.
-- **Footer buttons** — the `+` appends a new task titled "Empty", ready to be
-  edited. The reset button to its left zeroes *every* task at once; like the
-  per-row reset, any running timer keeps running from `00:00:00`. It takes
-  effect immediately, with no confirmation prompt.
-- Running timers render in the full foreground color; idle ones are dimmed, so
-  the active tasks stand out.
+- **Bar button** — Shows the total time of all tasks. Color changes to red when at least one timer is running.
+ **Task timer** - For each task you can: start/stop timer, edit task, reset timer or delete the task.
 
 Multiple timers can run at once — nothing stops the previous one when you
 start another.
